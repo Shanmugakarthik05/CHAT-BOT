@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Intelligent Enterprise Assistant",
+  "description": "An AI-driven chatbot to enhance organizational efficiency by answering queries on HR, IT, and company policies, and providing document analysis capabilities like summarization and keyword extraction.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

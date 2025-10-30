@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-g" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intelligent Enterprise Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Enable class-based dark mode
+        theme: {
+          extend: {
+            colors: {
+              // Brand colors remain consistent
+              'brand-primary': '#0D47A1',
+              'brand-secondary': '#1565C0',
+              'brand-accent': '#2196F3',
+
+              // Light Theme
+              'bg-light': '#FFFFFF',
+              'bg-light-secondary': '#F3F4F6', // Lighter gray for message bubbles
+              'text-light-primary': '#111827',
+              'text-light-secondary': '#6B7280',
+              'border-light': '#D1D5DB',
+
+              // Dark Theme
+              'bg-dark': '#121212',
+              'bg-dark-secondary': '#1E1E1E', // Darker gray for message bubbles/inputs
+              'text-dark-primary': '#E0E0E0',
+              'text-dark-secondary': '#BDBDBD',
+              'border-dark': '#4B5563',
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

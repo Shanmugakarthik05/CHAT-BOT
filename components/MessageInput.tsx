@@ -6,6 +6,7 @@ import Spinner from './Spinner';
 import { BoldIcon } from './icons/BoldIcon';
 import { ItalicIcon } from './icons/ItalicIcon';
 import { AtIcon } from './icons/AtIcon';
+import VideoIcon from './icons/VideoIcon';
 
 // FIX: Define types for the Web Speech API to resolve TypeScript errors.
 // The Web Speech API is not yet a standard and types are not included in default TS libs.
@@ -51,10 +52,11 @@ interface SpeechRecognition extends EventTarget {
 
 interface MessageInputProps {
   onSend: (text: string, file?: File) => void;
+  onGenerateVideo: (prompt: string, file: File) => void;
   disabled: boolean;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSend, onGenerateVideo, disabled }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | undefined>();
   const [isRecording, setIsRecording] = useState(false);
@@ -64,6 +66,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const isSpeechRecognitionSupported = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const isImageFile = file?.type.startsWith('image/');
 
   const resetState = () => {
     setText('');
@@ -92,6 +96,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
     }
   };
 
+  const handleGenerateVideoClick = () => {
+    if (file && isImageFile) {
+        onGenerateVideo(text, file);
+        resetState();
+    }
+  };
+
   const handleCancelFile = () => {
     setFile(undefined);
     if (fileInputRef.current) {
@@ -102,7 +113,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendText();
+      if (file && isImageFile) {
+        handleGenerateVideoClick();
+      } else {
+        handleSendText();
+      }
     }
   };
 
@@ -176,7 +191,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Speech recognition error:', event.error);
+        console.error('Speech recognition error:', event.error, event.message);
+        alert(`Speech recognition error: ${event.error}. ${event.message || 'Please check microphone permissions and try again.'}`);
         setIsRecording(false);
       };
 
@@ -207,7 +223,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
         ref={fileInputRef}
         onChange={handleFileChange}
         className="hidden"
-        accept=".txt,.md,.pdf,.docx"
+        accept=".txt,.md,.pdf,.docx,image/*"
         disabled={disabled}
       />
       
@@ -221,23 +237,46 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
                 </span>
               </div>
             ) : (
-              <>
+             <>
                 <div className="text-sm text-text-light-secondary dark:text-dark-secondary truncate" title={file.name}>
                     Attached: <span className="font-medium text-brand-accent">{file.name}</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-                    <button 
-                        onClick={() => handleSendActionWithFile('Summarize the attached document.')}
-                        className="text-xs bg-brand-secondary text-white px-3 py-1.5 rounded-md hover:bg-brand-primary transition-colors"
-                    >
-                        Summarize Document
-                    </button>
-                    <button 
-                        onClick={() => handleSendActionWithFile('Extract keywords from the attached document.')}
-                        className="text-xs bg-brand-secondary text-white px-3 py-1.5 rounded-md hover:bg-brand-primary transition-colors"
-                    >
-                        Extract Keywords
-                    </button>
+                    {isImageFile ? (
+                        <>
+                            <div className="flex-1 md:flex-none">
+                                <input
+                                  type="text"
+                                  value={text}
+                                  onChange={(e) => setText(e.target.value)}
+                                  placeholder="Add a prompt for the video..."
+                                  className="w-full bg-bg-light-secondary dark:bg-gray-800 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                                />
+                            </div>
+                            <button 
+                                onClick={handleGenerateVideoClick}
+                                className="text-xs bg-brand-secondary text-white px-3 py-1.5 rounded-md hover:bg-brand-primary transition-colors flex items-center gap-1"
+                            >
+                                <VideoIcon className="h-4 w-4" />
+                                Generate Video
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button 
+                                onClick={() => handleSendActionWithFile('Summarize the attached document.')}
+                                className="text-xs bg-brand-secondary text-white px-3 py-1.5 rounded-md hover:bg-brand-primary transition-colors"
+                            >
+                                Summarize Document
+                            </button>
+                            <button 
+                                onClick={() => handleSendActionWithFile('Extract keywords from the attached document.')}
+                                className="text-xs bg-brand-secondary text-white px-3 py-1.5 rounded-md hover:bg-brand-primary transition-colors"
+                            >
+                                Extract Keywords
+                            </button>
+                        </>
+                    )}
                     <button 
                         onClick={handleCancelFile}
                         className="p-1 rounded-full text-text-light-secondary dark:text-dark-secondary hover:bg-bg-light-secondary dark:hover:bg-gray-700"

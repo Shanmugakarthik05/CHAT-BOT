@@ -7,7 +7,6 @@ interface ProfileModalProps {
   onClose: () => void;
   userEmail: string;
   onLogout: () => void;
-  onClearHistory: () => void;
   persona: Persona;
   onPersonaChange: (persona: Persona) => void;
 }
@@ -17,7 +16,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   onClose, 
   userEmail, 
   onLogout,
-  onClearHistory,
   persona,
   onPersonaChange
 }) => {
@@ -78,21 +76,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               </div>
             </div>
           </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-text-light-primary dark:text-dark-primary mb-2">Data Management</h4>
-            <button
-              onClick={() => {
-                onClearHistory();
-                onClose(); // Close modal after action
-              }}
-              className="w-full text-left text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"
-            >
-              Clear Chat History
-            </button>
-          </div>
           
-          <div className="border-t border-border-light dark:border-border-dark"></div>
+          <div className="border-t border-border-light dark:border-border-dark pt-2"></div>
           
           <button
             onClick={onLogout}

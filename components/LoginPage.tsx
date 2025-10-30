@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
+import Spinner from './Spinner';
 
 interface LoginPageProps {
   onLoginSuccess: (email: string) => void;
@@ -12,13 +13,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, theme, setTheme }
   const [email, setEmail] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [isCodeSent, setIsCodeSent] = useState<boolean>(false);
+  const [isSendingCode, setIsSendingCode] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const handleSendCode = (e: FormEvent) => {
     e.preventDefault();
     if (email && email.includes('@')) {
-      setIsCodeSent(true);
       setError('');
+      setIsSendingCode(true);
+      // Simulate network delay for sending email
+      setTimeout(() => {
+        setIsSendingCode(false);
+        setIsCodeSent(true);
+      }, 1500);
     } else {
       setError('Please enter a valid email address.');
     }
@@ -69,6 +76,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, theme, setTheme }
                     placeholder="Enter your corporate email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSendingCode}
                   />
                 </div>
               </div>
@@ -76,17 +84,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, theme, setTheme }
               <div>
                 <button
                   type="submit"
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-200 dark:focus:ring-offset-gray-800 focus:ring-brand-accent transition-colors duration-200"
+                  disabled={isSendingCode}
+                  className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-200 dark:focus:ring-offset-gray-800 focus:ring-brand-accent transition-colors duration-200 disabled:bg-brand-secondary disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Send Verification Code
+                  {isSendingCode ? <Spinner className="text-white" /> : 'Send Verification Code'}
                 </button>
               </div>
             </form>
           ) : (
             <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-              <p className="text-center text-sm text-green-500 dark:text-green-400">
-                A verification code has been sent to {email}.<br/>(Hint: it's 123456)
-              </p>
+               <div className="text-center text-sm text-text-light-secondary dark:text-dark-secondary p-4 bg-bg-light-secondary dark:bg-gray-800 rounded-lg">
+                <p className="font-medium text-green-500 dark:text-green-400">
+                  Verification code "sent" to {email}.
+                </p>
+                <p className="mt-2">
+                  For this demo, email sending is simulated. Please use the code below to log in.
+                </p>
+                <p className="mt-3 text-lg font-bold tracking-widest text-brand-accent bg-bg-light dark:bg-gray-900 py-2 rounded-md">
+                  123456
+                </p>
+              </div>
               <div className="rounded-md shadow-sm -space-y-px">
                 <div>
                   <label htmlFor="code" className="sr-only">Verification Code</label>

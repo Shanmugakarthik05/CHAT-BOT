@@ -8,12 +8,17 @@ const App: React.FC = () => {
   
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
-    return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
+    return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'light';
   });
 
   const [persona, setPersona] = useState<Persona>(() => {
     const savedPersona = localStorage.getItem('persona') as Persona;
     return ['friendly', 'formal', 'concise'].includes(savedPersona) ? savedPersona : 'friendly';
+  });
+  
+  const [isThinkingMode, setIsThinkingMode] = useState<boolean>(() => {
+    const savedMode = localStorage.getItem('thinkingMode');
+    return savedMode === 'true';
   });
 
   useEffect(() => {
@@ -28,6 +33,11 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('persona', persona);
   }, [persona]);
+  
+  useEffect(() => {
+    localStorage.setItem('thinkingMode', String(isThinkingMode));
+  }, [isThinkingMode]);
+
 
   const handleLoginSuccess = (email: string) => {
     setUserEmail(email);
@@ -47,6 +57,8 @@ const App: React.FC = () => {
           setTheme={setTheme}
           persona={persona}
           setPersona={setPersona}
+          isThinkingMode={isThinkingMode}
+          setIsThinkingMode={setIsThinkingMode}
         />
       ) : (
         <LoginPage 

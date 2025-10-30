@@ -6,3 +6,5 @@ export interface ChatMessage {
 }
 
 export type Persona = 'friendly' | 'formal' | 'concise';
+
+export type AspectRatio = '16:9' | '9:16';

@@ -1,16 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ChatMessage, Persona } from '../types';
-import { sendMessageToGemini, resetChatInstance } from '../services/geminiService';
+import { sendMessageToGemini } from '../services/geminiService';
 import { Content, Part } from '@google/genai';
 
 const INITIAL_MESSAGE: ChatMessage = {
   role: 'model',
-  text: "Hello! I'm Eva, your enterprise assistant. I can help with HR policies, IT support, and more. You can also upload a document for summarization or keyword extraction.",
+  text: "Hello! I'm Eva, your enterprise assistant. I can help with HR policies, IT support, and more. Ask me a question about our company policies or upload a document for analysis.",
 };
 
 const CHAT_HISTORY_KEY = 'enterprise_chat_history';
 
-export const useChat = (persona: Persona) => {
+export const useChat = (persona: Persona, isThinkingMode: boolean) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
@@ -22,6 +22,7 @@ export const useChat = (persona: Persona) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,37 +33,38 @@ export const useChat = (persona: Persona) => {
     }
   }, [messages]);
 
-  const clearChat = useCallback((silent = false) => {
-    const confirmClear = silent ? true : window.confirm("Are you sure you want to clear the chat history? This action cannot be undone.");
-    if (confirmClear) {
-      setMessages([INITIAL_MESSAGE]);
-      localStorage.removeItem(CHAT_HISTORY_KEY);
-      resetChatInstance();
-    }
+  const clearChat = useCallback(() => {
+    setMessages([INITIAL_MESSAGE]);
+    localStorage.removeItem(CHAT_HISTORY_KEY);
   }, []);
   
   useEffect(() => {
     // When persona changes, clear the chat to start a new context.
-    clearChat(true); 
+    clearChat(); 
   }, [persona, clearChat]);
 
 
   const sendMessage = useCallback(async (text: string, file?: File) => {
     setIsLoading(true);
+    setIsSearching(false);
     setError(null);
 
     const userMessage: ChatMessage = { role: 'user', text };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
-    const historyForApi: Content[] = messages
-      .filter(m => m.role === 'user' || m.role === 'model')
-      .map(message => ({
-        role: message.role,
-        parts: [{ text: message.text }],
-      }));
+    // Pass the history *before* the new user message to the API
+    const historyForApi = messages;
 
     try {
-      const responseText = await sendMessageToGemini(persona, historyForApi, text, file);
+      const responseText = await sendMessageToGemini(
+        persona, 
+        historyForApi, 
+        text, 
+        file,
+        isThinkingMode, 
+        () => { setIsSearching(true); }
+      );
       const modelMessage: ChatMessage = { role: 'model', text: responseText };
       setMessages(prevMessages => [...prevMessages, modelMessage]);
     } catch (e) {
@@ -72,8 +74,9 @@ export const useChat = (persona: Persona) => {
       setMessages(prevMessages => [...prevMessages, systemMessage]);
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
-  }, [messages, persona]);
+  }, [messages, persona, isThinkingMode]);
 
-  return { messages, isLoading, error, sendMessage, clearChat };
+  return { messages, isLoading, isSearching, error, sendMessage, clearChat };
 };
